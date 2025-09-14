@@ -1,0 +1,50 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: chatdb
+          POSTGRES_USER: chatuser
+          POSTGRES_PASSWORD: chatpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chatuser" --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: chatdb
+      DB_USER: chatuser
+      DB_PASSWORD: chatpass
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r django_project/requirements.txt
+    - name: Run migrations
+      run: |
+        python django_project/manage.py migrate
+    - name: Run tests
+      run: |
+        python django_project/manage.py test chat

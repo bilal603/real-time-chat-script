@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+venv/
+env/
+ENV/
+
+# Django
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Docker
+postgres_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test & Coverage
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# Other
+*.bak
+*.swp
+*.swo
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore migrations
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/*.bak
+**/migrations/*.swp
+**/migrations/*.swo
+**/migrations/__pycache__/
+
+# Log files and databases

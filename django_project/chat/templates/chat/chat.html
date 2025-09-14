@@ -1,0 +1,93 @@
+
+{% extends 'chat/base.html' %}
+{% block title %}Chat Room{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="mb-4">Chat Room</h2>
+                {% if request.session.user_name %}
+                    <div class="mb-3">Welcome, <strong>{{ request.session.user_name }}</strong>! <a href="{% url 'logout' %}" class="btn btn-link btn-sm">Logout</a></div>
+                {% endif %}
+            <div id="alertBox" class="alert alert-warning" style="display:none;"></div>
+            <div id="typingIndicator" class="mb-2 text-muted" style="display:none;"></div>
+            <div id="messages" class="border rounded p-2 mb-3 bg-white" style="height:200px; overflow-y:scroll;"></div>
+                <div class="input-group">
+                      <input id="messageInput" type="text" class="form-control" placeholder="Type a message..." oninput="handleInput()" onkeydown="if(event.key==='Enter'){event.preventDefault(); if(!sendButton.disabled) sendMessage();}" />
+                      <button id="sendButton" onclick="sendMessage()" class="btn btn-primary" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    let typingTimeout;
+    let isTyping = false;
+    const currentUser = "{{ request.session.user_name|escapejs }}";
+    function toggleSendButton() {
+        const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendButton');
+        sendBtn.disabled = input.value.trim() === '';
+    }
+
+    function handleInput() {
+        toggleSendButton();
+        const input = document.getElementById('messageInput');
+        if (input.value.trim() !== '' && !isTyping) {
+            ws.send(JSON.stringify({ 'typing': true }));
+            isTyping = true;
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 2000);
+        } else if (input.value.trim() === '' && isTyping) {
+            stopTyping();
+        }
+    }
+
+    function stopTyping() {
+        ws.send(JSON.stringify({ 'typing': false }));
+        isTyping = false;
+    }
+    const ws = new WebSocket('ws://' + window.location.host + '/ws/chat/');
+    ws.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messages = document.getElementById('messages');
+        if (data.alert) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = data.alert;
+            alertBox.style.display = 'block';
+            setTimeout(() => { alertBox.style.display = 'none'; }, 3000);
+            return;
+        }
+        if (data.typing && data.sender !== currentUser) {
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'block';
+            typingIndicator.textContent = data.sender + ' is typing...';
+        } else if (data.typing === false) {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        if (data.message) {
+            messages.innerHTML += '<div class="mb-1"><strong>' + (data.sender ? data.sender : 'Anonymous') + ':</strong> ' + data.message + '</div>';
+            messages.scrollTop = messages.scrollHeight;
+        }
+    };
+    ws.onerror = function(e) {
+        console.error('WebSocket error:', e);
+    };
+    ws.onclose = function(e) {
+        console.warn('WebSocket closed:', e);
+    };
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ 'message': input.value }));
+            input.value = '';
+            toggleSendButton();
+        } else {
+            alert('Connection to chat server lost. Please refresh the page.');
+        }
+    }
+</script>
+{% endblock %}
