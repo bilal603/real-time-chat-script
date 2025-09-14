@@ -77,7 +77,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Channels configuration
 ASGI_APPLICATION = 'config.asgi.application'
@@ -90,15 +89,14 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Use dj_database_url for Heroku, fallback to Docker config
+import dj_database_url
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chatdb',
-        'USER': 'chatuser',
-        'PASSWORD': 'chatpass',
-        'HOST': 'db',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgres://chatuser:chatpass@db:5432/chatdb',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 
