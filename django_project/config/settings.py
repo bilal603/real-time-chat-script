@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 ]
 
 # Channels for WebSocket support
-INSTALLED_APPS += ['channels', 'django_project.chat']
+INSTALLED_APPS += ['channels', 'chat']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -91,13 +91,26 @@ CHANNEL_LAYERS = {
 
 # Use dj_database_url for Heroku, fallback to Docker config
 import dj_database_url
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://chatuser:chatpass@db:5432/chatdb',
-        conn_max_age=600,
-        ssl_require=False
-    )
-}
+import os
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='postgres://chatuser:chatpass@db:5432/chatdb',
+            conn_max_age=600,
+            ssl_require=False
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'chatdb',
+            'USER': 'chatuser',
+            'PASSWORD': 'chatpass',
+            'HOST': 'db',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation

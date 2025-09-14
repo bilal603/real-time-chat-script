@@ -8,6 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app
       - DEBUG=1
       - POSTGRES_DB=chatdb
       - POSTGRES_USER=chatuser
