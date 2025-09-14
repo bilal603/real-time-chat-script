@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 ]
 
 # Channels for WebSocket support
-INSTALLED_APPS += ['channels', 'chat']
+INSTALLED_APPS += ['channels', 'django_project.chat']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
